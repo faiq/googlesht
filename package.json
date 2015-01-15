@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/faiq/googlesht",
   "dependencies": {
+    "cookie-parser": "^1.3.3",
     "express": "^4.11.0",
     "express-session": "^1.10.1",
     "passport": "^0.2.1",
