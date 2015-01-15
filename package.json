@@ -20,7 +20,9 @@
   },
   "homepage": "https://github.com/faiq/googlesht",
   "dependencies": {
-    "passport-google-oauth": "^0.1.5",
-    "routes-router": "^4.1.2"
+    "express": "^4.11.0",
+    "express-session": "^1.10.1",
+    "passport": "^0.2.1",
+    "passport-google-oauth": "^0.1.5"
   }
 }
