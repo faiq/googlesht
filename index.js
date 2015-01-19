@@ -7,6 +7,7 @@ var express = require("express")
   , session = require('express-session')
   , trace = require('long-stack-traces')
   , refresh = require('google-refresh-token')
+  , JSONStream = require('JSONStream')
   , User = require('./models/user')
   , Google = require('./fetchers/Google')
   , router = express()
@@ -75,7 +76,8 @@ router.get('/fail', function (req, res) {
 router.get('/pass',  function (req, res) { 
   var client = new Google(req.user) 
     , s = client.getAll()
-  s.pipe(res)
+  s.pipe(JSONStream.parse([true]))
+   .pipe(res)
   s.on('error', console.error.bind(console))
 })
 
