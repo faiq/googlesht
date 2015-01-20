@@ -27,6 +27,7 @@
     "google-drive": "0.0.6",
     "google-refresh-token": "^0.5.3",
     "mongoose": "^3.8.21",
+    "nock": "^0.57.0",
     "passport": "^0.2.1",
     "passport-google-oauth": "^0.1.5",
     "request": "^2.51.0"

@@ -1,5 +1,6 @@
 var express = require("express") 
   , http = require("http")
+  , request = require("request")
   , fs = require("fs")
   , passport = require("passport")
   , goAuth = require("passport-google-oauth").OAuth2Strategy 
@@ -8,14 +9,39 @@ var express = require("express")
   , trace = require('long-stack-traces')
   , refresh = require('google-refresh-token')
   , JSONStream = require('JSONStream')
-  , User = require('./models/user')
+  , mongoose = require('mongoose')
   , Google = require('./fetchers/Google')
   , router = express()
+
+mongoose.connect('mongodb://localhost/googleUsers')
+var db = mongoose.connection
+db.on('error', function (err) { 
+  console.error(err)
+}) 
+db.once('open', function () { 
+  console.log('yo')
+  console.log('mongo in da house!')
+})
+
+var userSchema = mongoose.Schema({
+  token: String,
+  refreshToken: String, 
+  expirationDate: Number
+})
+  , User = mongoose.model('user', userSchema)  
 
 router.use(session({secret: 'cat'}))
 router.use(passport.initialize())
 router.use(passport.session())
 router.use(cookieParser())
+
+passport.serializeUser(function(user, done) {
+  done(null, user)
+})
+
+passport.deserializeUser(function(user, done) {
+  done(null, user)
+})
 
 passport.use(new goAuth({
   clientID: process.env["KEY"],
@@ -25,42 +51,39 @@ passport.use(new goAuth({
   'https://www.googleapis.com/auth/userinfo.email',"https://www.googleapis.com/auth/drive"]
   },
   function(token, refreshToken, params, profile, done) {
-    //User.findOne({token: token}, function (err, user) { 
-    //  if (err) { 
-    //    console.log('errrrrrrrr')
-    //    return done(err, user)
-    //  } else if (!user) { 
-    //    var now = + new Date
-    //    var newUser = new User(
-    //      { token: token, 
-    //        refreshToken: refreshToken, 
-    //        expirationDate: now + params.expires_in
-    //      }
-    //    )
-    //    newUser.save(function (err, user) { 
-    //      console.log('dafsadsfadfsadfs')
-    //      if (err) {
-    //        console.log('fuck'); 
-    //        return console.error(err) 
-    //      }
-    //      return done(null, newUser) 
-    //    }) 
-    //    console.log('user not found')
-    //  } else {
-    //    console.log('the user was already there hoe')
-    //  }
-    //}) 
-    return done(null, token)
-  })
-)
+    console.log('this is token ' + token)
+    console.log('refresh ' + refreshToken)
+    console.log('params ' + params)
+    console.log('profile ' + profile)
+    User.findOne({token: token}, function (err, user) { 
+      console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+      if (err) { 
+        console.log('errrrrrrrr')
+        return done(err, null)
+      } else if (!user) { 
+        var now = + new Date
+        var newUser = new User(
+          { token: token, 
+            refreshToken: refreshToken, 
+            expirationDate: now + params.expires_in
+          }
+        )
+        newUser.save(function (err, user) { 
+          console.log('dafsadsfadfsadfs')
+          if (err) {
+            console.log('fuck'); 
+            return done(err, null)
+          }
+          return done(null, newUser) 
+          console.log('user not found')
+        }) 
+      } else {
+        console.log('the user was already there hoe')
+        return done(null, user)
+      }
+  }) 
+}))
 
-passport.serializeUser(function(user, done) {
-  done(null, user)
-})
-
-passport.deserializeUser(function(user, done) {
-  done(null, user)
-})
 
 router.get("/auth/google", passport.authenticate('google', 
   { session: false,
@@ -75,10 +98,17 @@ router.get('/fail', function (req, res) {
 
 router.get('/pass',  function (req, res) { 
   var client = new Google(req.user) 
-    , s = client.getAll()
-  s.pipe(JSONStream.parse([true]))
-   .pipe(res)
-  s.on('error', console.error.bind(console))
+    , resArr = []
+  console.log(req.user)
+  client.getAll(function (e, r, b) { 
+    b = JSON.parse(b)
+    b.items.forEach(function (i) { 
+      if (i["mimeType"] === 'application/vnd.google-apps.spreadsheet') { 
+          resArr.push(i)
+      } 
+    })
+    res.send(resArr)
+  })
 })
 
 router.get("/", function (req, res) { 
