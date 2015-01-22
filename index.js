@@ -6,11 +6,11 @@ var express = require("express")
   , goAuth = require("passport-google-oauth").OAuth2Strategy
   , cookieParser = require('cookie-parser')
   , session = require('express-session')
-  , refresh = require('google-refresh-token')
   , JSONStream = require('JSONStream')
-  , refresh = require('google-refresh-token')
+  , refresh = require('./refresh')
   , mongoose = require('mongoose')
   , Google = require('./fetchers/Google')
+  
   , router = express()
   , User = null 
 
@@ -49,31 +49,7 @@ mongoose.connection.on('open', function (err) {
         User.findOne({id: profile.id}, function (err, user) {
           if (err) return done(err)
           else if (user) { 
-            //ok now we check to see if their shit is valid 
-            //if (Math.floor((+ new Date)/1000) > user.expirationDate) { 
-              refresh(user.refreshToken, process.env["KEY"]
-              ,process.env["CS"], function (err, json, res) {
-                console.log('in refresh!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-                if (err) { console.log(err); return done(err) } 
-                else if (json.error) {
-                  console.log('dsafadsf', 
-                    json.error)
-                  return done(new Error(json.error))
-                }
-                else {
-                  if (!accessToken) return done(new Error('no access token'))
-                  user.token = json.accessToken;
-                  user.experationDate = Math.floor((+ new Date)/1000 + parseInt(json.expiresIn, 10))
-                  user.save(function (err) { 
-                    console.log('saving')
-                    if (err) throw Error('cant update shit')    
-                    return done(null, user) 
-                  })
-                }
-              })
-            }
-            //we good tho
-            //console.log('HAD A USER')
+            //we'll move the validation/refresh token stuff to api requests themselves 
             return done(null, user)
           } else { 
             var newUser = new User()
@@ -108,15 +84,11 @@ mongoose.connection.on('open', function (err) {
   }) 
 
   router.get('/pass',  function (req, res) { 
-    var client = new Google(req.user.token) 
-      , resArr = []
-    client.getAll(function (e, r, b) { 
-      b = JSON.parse(b)
-      console.log(b)
-      b.items.forEach(function (i) { 
-        if (i["mimeType"] === 'application/vnd.google-apps.spreadsheet') resArr.push(i)
-      })
-      res.send(resArr)
+    refresh(req.user, process.env["KEY"], process.env["CS"], function (err) { 
+        if (err) throw Error('Error with the refresh')
+        var client = new Google(req.user.token) 
+        , resArr = []
+        client.getAll().pipe(JSONStream.parse('items.*')).pipe(JSONStream.stringify()).pipe(res)
     })
   })
 
