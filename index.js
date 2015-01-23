@@ -7,9 +7,11 @@ var express = require("express")
   , cookieParser = require('cookie-parser')
   , session = require('express-session')
   , JSONStream = require('JSONStream')
-  , es = requrie('event-stream')
+  , es = require('event-stream')
   , refresh = require('./refresh')
   , mongoose = require('mongoose')
+  , request = require('request')
+  , csv = require('csv-parser')
   , Google = require('./fetchers/Google')
   , router = express()
   , User = null 
@@ -87,15 +89,34 @@ mongoose.connection.on('open', function (err) {
     refresh(req.user, process.env["KEY"], process.env["CS"], function (err) { 
         if (err) throw Error('Error with the refresh')
         var client = new Google(req.user.token) 
-        , resArr = []
-        client.getAll()
-        .pipe(JSONStream.parse('items.*.exportLinks'))
-        .pipe(es.map(function (data, callback) { 
-          if (data['text/csv']) callback(null,data['text/csv'])
-          else callback(null)
-        }))
-        .pipe(JSONStream.stringify())
-        .pipe(res)
+        client.getAll(function (e,r,b) { 
+          b = JSON.parse(b)
+          var str = b.items.filter(function (i) { 
+            if (i.exportLinks && i.exportLinks['text/csv']) return i
+          })
+          .map(function(i) { 
+            return i.exportLinks['text/csv']
+          })
+          .reduce(function (prev, curr) { 
+            return prev  
+          })
+          .toString()
+          var opts = {}
+          opts.uri = str
+          request(opts)
+          .pipe(csv())
+          .on('error', console.error.bind(console))
+          .pipe(JSONStream.stringify())
+          .pipe(res)
+        })
+        //client.getAll()
+        //.pipe(JSONStream.parse('items.*.exportLinks'))
+        //.pipe(es.map(function (data, callback) { 
+        //  if (data['text/csv']) callback(null, data['text/csv'])
+        //  else return callback(null)
+        //}))
+        //.pipe(JSONStream.stringify())
+        //.pipe(res)
     })
   })
 

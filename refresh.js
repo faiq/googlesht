@@ -4,7 +4,10 @@ module.exports = function (user, clientID, clientSecret, next) {
   if (Math.floor((+ new Date)/1000) > user.expirationDate) { 
     refresh(user.refreshToken, clientID, clientSecret 
     , function (err, json, res) {
-        if (err) return next (err) 
+        if (err) { 
+          console.log(err)
+          return next (err)
+        }
         else if (json.error) 
           throw Error(json.error)
         else {
