@@ -28,7 +28,7 @@ describe('hitting the all endpoint', function () {
     })
     res.on('end', function () { 
       buf = JSON.parse(buf) 
-      assert(buf.length, 59)
+      assert.deepEqual(buf.length, 59)
       Array.prototype.forEach.call(buf, function (item) { 
         assert(item.title)
         assert(item.id) 
@@ -48,17 +48,15 @@ describe('hitting the all endpoint', function () {
     } 
     res.send = function (message) { 
       res.message = message
-      console.error('yoooo ~',  typeof res.num)
-      console.error(res)
-      assert(res.message, 'nstdaf') //'Invalid Credentials')
-      assert(res.num, 12321) //401)
+      assert.deepEqual(res.message, 'Invalid Credentials')
+      assert.deepEqual(res.num, 401)
       done()
     }
     routes.all(req,res)
   })
 })
 
-/*
+
 describe('hitting an /all/:item endpoint', function () {
   it ('should error if you aren\'t authenticated', function (done) { 
     var req = {}
@@ -70,8 +68,8 @@ describe('hitting an /all/:item endpoint', function () {
     } 
     res.send = function (message) { 
       res.message = message
-      assert(res.message, 'Invalid Credentials')
-      assert(res.status, 401)
+      assert.deepEqual(res.message, 'Invalid Credentials')
+      assert.deepEqual(res.num, 401)
       done()
     }
     routes.type(req,res)
@@ -90,14 +88,36 @@ describe('hitting an /all/:item endpoint', function () {
     } 
     res.send = function (message) { 
       res.message = message
-      assert(res.message, 'Invalid file type')
-      assert(res.status, 400)
+      assert.deepEqual(res.message, 'Invalid file type')
+      assert.deepEqual(res.num, 400)
       done()
     }
     routes.type(req,res)
   })
   it ('should give me all my spreadsheets if i pass in spreadsheets as a param', function (done) { 
-    done()
+    var req = {}
+      , res = new Stream 
+      , buf = ''
+
+    req.isAuthenticated = function () { return true }
+    req.user = {}
+    req.user.token = '123445abcd'
+    req.params = {} 
+    req.params.type = 'document'  
+    res.on('data', function (chunk) {
+      buf += chunk.toString()
+    })
+    res.on('end', function () { 
+      buf = JSON.parse(buf) 
+      assert.deepEqual(buf.length, 33)
+      Array.prototype.forEach.call(buf, function (item) { 
+        assert(item.title)
+        assert(item.id) 
+        assert(item.type) 
+      }) 
+      done()
+    })
+    routes.type(req, res)
   })
 })
-*/
+
