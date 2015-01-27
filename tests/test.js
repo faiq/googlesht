@@ -43,17 +43,61 @@ describe('hitting the all endpoint', function () {
       , res = {}
     req.isAuthenticated = function () { return false }
     res.status = function (num) { 
-      this.num = num
-      return this 
+      res.num = num
+      return res
     } 
     res.send = function (message) { 
-      this.message = message
-      var _this = this 
-      assert(_this.message, 'Invalid Credentials')
-      assert(_this.status, 401)
+      res.message = message
+      console.error('yoooo ~',  typeof res.num)
+      console.error(res)
+      assert(res.message, 'nstdaf') //'Invalid Credentials')
+      assert(res.num, 12321) //401)
       done()
     }
     routes.all(req,res)
   })
 })
 
+/*
+describe('hitting an /all/:item endpoint', function () {
+  it ('should error if you aren\'t authenticated', function (done) { 
+    var req = {}
+      , res = {}
+    req.isAuthenticated = function () { return false }
+    res.status = function (num) { 
+      res.num = num
+      return res 
+    } 
+    res.send = function (message) { 
+      res.message = message
+      assert(res.message, 'Invalid Credentials')
+      assert(res.status, 401)
+      done()
+    }
+    routes.type(req,res)
+  })
+  it ('should error if you don\'t pass it in a valid param', function (done) { 
+    var req = {}
+      , res = {}
+    req.isAuthenticated = function () { return true }
+    req.user = {} 
+    req.user.token = 'cool'
+    req.params = {} 
+    req.params.type = 'something not supported by google'  
+    res.status = function (num) { 
+      res.num = num
+      return res
+    } 
+    res.send = function (message) { 
+      res.message = message
+      assert(res.message, 'Invalid file type')
+      assert(res.status, 400)
+      done()
+    }
+    routes.type(req,res)
+  })
+  it ('should give me all my spreadsheets if i pass in spreadsheets as a param', function (done) { 
+    done()
+  })
+})
+*/
