@@ -15,13 +15,14 @@ beforeEach(function (done) {
 })
 
 describe('hitting the all endpoint', function () { 
-  it ('should respoond with an array with all my files', function (done) { 
+  it ('should respoond with an array with all my files with right credentials', function (done) { 
     var req = {}
+      , res = new Stream 
+      , buf = ''
+
     req.isAuthenticated = function () { return true }
     req.user = {}
     req.user.token = '123445abcd'
-    res = new Stream 
-    var buf = ''
     res.on('data', function (chunk) {
       buf += chunk.toString()
     })
@@ -37,4 +38,22 @@ describe('hitting the all endpoint', function () {
     })
     routes.all(req, res)       
   }) 
+  it ('should send an error when you\'re not authenticated', function (done) { 
+    var req = {}
+      , res = {}
+    req.isAuthenticated = function () { return false }
+    res.status = function (num) { 
+      this.num = num
+      return this 
+    } 
+    res.send = function (message) { 
+      this.message = message
+      var _this = this 
+      assert(_this.message, 'Invalid Credentials')
+      assert(_this.status, 401)
+      done()
+    }
+    routes.all(req,res)
+  })
 })
+
