@@ -1,18 +1,11 @@
 var express = require("express")
   , http = require("http")
-  , request = require("request")
-  , fs = require("fs")
   , passport = require("passport")
   , goAuth = require("passport-google-oauth").OAuth2Strategy
   , cookieParser = require('cookie-parser')
   , session = require('express-session')
-  , JSONStream = require('JSONStream')
-  , es = require('event-stream')
-  , refresh = require('./refresh')
   , mongoose = require('mongoose')
-  , request = require('request')
-  , csv = require('csv-parser')
-  , Google = require('./fetchers/Google')
+  , routes = require('./routes')
   , router = express()
   , User = null 
 
@@ -31,29 +24,29 @@ mongoose.connection.on('open', function (err) {
   router.use(passport.initialize())
   router.use(passport.session())
   router.use(cookieParser())
-   
   passport.serializeUser(function(user, done) {
     done(null, user.id)
   })
 
   passport.deserializeUser(function(id, done) {
-    User.findOne({id: id}, function (err, user) { 
+    User.findOne({id: id}, function (err, user) {
       done(err, user)
     })
   })
   passport.use(new goAuth({
     clientID: process.env["KEY"],
     clientSecret: process.env["CS"],
-    callbackURL: "http://127.0.0.1:3000/auth/google/callback"
+    callbackURL: "http://127.0.0.1:3000/auth/google/callback",
+    scope: ['profile', 'email','https://www.googleapis.com/auth/drive']
     },
     function(aToken, refreshToken, params, profile, done) {
-      process.nextTick(function () { 
+      process.nextTick(function () {
         User.findOne({id: profile.id}, function (err, user) {
           if (err) return done(err)
-          else if (user) { 
-            //we'll move the validation/refresh token stuff to api requests themselves 
+          else if (user) {
+            //we'll move the validation/refresh token stuff to api requests themselves
             return done(null, user)
-          } else { 
+          } else {
             var newUser = new User()
             newUser.id = profile.id
             newUser.token = aToken
@@ -62,7 +55,7 @@ mongoose.connection.on('open', function (err) {
             newUser.save(function(err) {
               if (err) throw err;
               return done(null, newUser);
-            }) 
+            })
           }
         })
       })
@@ -70,76 +63,12 @@ mongoose.connection.on('open', function (err) {
     )
   )
 
-
-  router.get("/auth/google", passport.authenticate('google', 
-    { 
-      scope: ['https://www.googleapis.com/auth/userinfo.profile',
-      'https://www.googleapis.com/auth/userinfo.email',"https://www.googleapis.com/auth/drive"],
-      accessType: 'offline',
-      approvalPrompt: 'force'
-    })) 
-
-  router.get("/auth/google/callback",passport.authenticate('google', {failureRedirect: '/fail',  successRedirect : '/all' }))
-       
-  router.get('/fail', function (req, res) { 
-    res.send('fail')
-  }) 
-
-  router.get('/all',  function (req, res) { 
-    refresh(req.user, process.env["KEY"], process.env["CS"], function (err) { 
-        if (err) throw Error('Error with the refresh')
-        var client = new Google(req.user.token) 
-        client.getAll()
-        .pipe(JSONStream.parse('items.*'))
-        .pipe(es.map(function (data, callback) { 
-          var obj = {}
-          obj.id = data.id
-          obj.title = data.title
-          obj.type = data.mimeType
-          callback(null,obj)
-        }))
-        .pipe(JSONStream.stringify())
-        .pipe(res)
-    })
-  })
-
-  router.get('/all/:type', function (req, res) { 
-    if (req.isAuthenticated()) {
-      if (isValid(req.params.type)) {
-        var regex = new RegExp(req.params.type, 'i')
-        refresh(req.user, process.env["KEY"], process.env["CS"], function (err) { 
-          var client = new Google(req.user.token)
-          client.getAll()
-          .pipe(JSONStream.parse('items.*'))
-          .pipe(es.map(function (data, cb) { 
-            if (regex.test(data.mimeType)) {
-              var obj = {}
-              obj.id = data.id
-              obj.title = data.title
-              obj.type = data.mimeType
-              cb(null,obj)
-            } else cb(null)
-          })) 
-          .pipe(JSONStream.stringify())
-          .pipe(res)
-        })
-      } else res.status(400).send('Invalid file type')
-    } else res.status(401).send('Invalid Credentials')
-  })
-
-  router.get("/", function (req, res) { 
-    console.log('hit index')
-    var html = fs.createReadStream(__dirname + "/views/index.html")
-    html.on("error", function (err) {
-      console.log(err)
-    })
-    html.pipe(res) 
-  })
-
+  router.get("/auth/google", passport.authenticate('google', { accessType: 'offline', approvalPrompt: 'force'}))
+  router.get("/auth/google/callback", passport.authenticate('google', {failureRedirect: '/fail',  successRedirect : '/all' }))        
+  router.get('/fail', routes.fail) 
+  router.get('/all',  routes.all)
+  router.get('/all/:type', routes.type)
+  router.get("/", routes.index)
   http.createServer(router).listen('3000', '127.0.0.1')
 })
 
-function isValid (type) {
-  if (type === 'spreadsheet'|| type === 'document') return true 
-  else return false
-}

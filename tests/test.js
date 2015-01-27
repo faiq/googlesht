@@ -1,3 +1,3 @@
 var nock = require('nock')
-  , data = require('./mock')
-  
+  , data = require('./mock') 
+
