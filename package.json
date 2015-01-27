@@ -4,7 +4,7 @@
   "description": "playground to work with oauth and google drive api ",
   "main": "index.js",
   "scripts": {
-    "test": "lab -v tests/test.js",
+    "test": "lab -cv tests/test.js",
     "start": "node index"
   },
   "repository": {
