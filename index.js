@@ -79,45 +79,52 @@ mongoose.connection.on('open', function (err) {
       approvalPrompt: 'force'
     })) 
 
-  router.get("/auth/google/callback",passport.authenticate('google', {failureRedirect: '/fail',  successRedirect : '/pass' }))
+  router.get("/auth/google/callback",passport.authenticate('google', {failureRedirect: '/fail',  successRedirect : '/all' }))
        
   router.get('/fail', function (req, res) { 
     res.send('fail')
   }) 
 
-  router.get('/pass',  function (req, res) { 
+  router.get('/all',  function (req, res) { 
     refresh(req.user, process.env["KEY"], process.env["CS"], function (err) { 
         if (err) throw Error('Error with the refresh')
         var client = new Google(req.user.token) 
-        client.getAll(function (e,r,b) { 
-          b = JSON.parse(b)
-          var str = b.items.filter(function (i) { 
-            if (i.exportLinks && i.exportLinks['text/csv']) return i
-          })
-          .map(function(i) { 
-            return i.exportLinks['text/csv']
-          })
-          .reduce(function (prev, curr) { 
-            return prev  
-          })
-          .toString()
-          var opts = {}
-          opts.uri = str
-          request(opts)
-          .pipe(csv())
-          .on('error', console.error.bind(console))
+        client.getAll()
+        .pipe(JSONStream.parse('items.*'))
+        .pipe(es.map(function (data, callback) { 
+          var obj = {}
+          obj.id = data.id
+          obj.title = data.title
+          obj.type = data.mimeType
+          callback(null,obj)
+        }))
+        .pipe(JSONStream.stringify())
+        .pipe(res)
+    })
+  })
+
+  router.get('/all/:type', function (req, res) { 
+    if (req.isAuthenticated()) {
+      if (isValid(req.params.type)) {
+        var regex = new RegExp(req.params.type, 'i')
+        refresh(req.user, process.env["KEY"], process.env["CS"], function (err) { 
+          var client = new Google(req.user.token)
+          client.getAll()
+          .pipe(JSONStream.parse('items.*'))
+          .pipe(es.map(function (data, cb) { 
+            if (regex.test(data.mimeType)) {
+              var obj = {}
+              obj.id = data.id
+              obj.title = data.title
+              obj.type = data.mimeType
+              cb(null,obj)
+            } else cb(null)
+          })) 
           .pipe(JSONStream.stringify())
           .pipe(res)
         })
-        //client.getAll()
-        //.pipe(JSONStream.parse('items.*.exportLinks'))
-        //.pipe(es.map(function (data, callback) { 
-        //  if (data['text/csv']) callback(null, data['text/csv'])
-        //  else return callback(null)
-        //}))
-        //.pipe(JSONStream.stringify())
-        //.pipe(res)
-    })
+      } else res.status(400).send('Invalid file type')
+    } else res.status(401).send('Invalid Credentials')
   })
 
   router.get("/", function (req, res) { 
@@ -131,3 +138,8 @@ mongoose.connection.on('open', function (err) {
 
   http.createServer(router).listen('3000', '127.0.0.1')
 })
+
+function isValid (type) {
+  if (type === 'spreadsheet'|| type === 'document') return true 
+  else return false
+}
