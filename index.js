@@ -43,10 +43,8 @@ mongoose.connection.on('open', function (err) {
       process.nextTick(function () {
         User.findOne({id: profile.id}, function (err, user) {
           if (err) return done(err)
-          else if (user) {
-            console.log(user) 
-            return done(null, user)
-          } else {
+          else if (user) return done(null, user)
+          else {
             var newUser = new User()
             newUser.id = profile.id
             newUser.token = aToken

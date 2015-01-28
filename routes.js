@@ -38,7 +38,7 @@ module.exports.all = function (req, res) {
             callback((new Error('The response from Google was wrong, or im dumb'))) //hopefullt im not stupid
         }))
         .on('error', function (err) { 
-          console.log(err)
+          res.status(500).send('Parsing your document type broke somehow') 
         })
         .pipe(JSONStream.stringify())
         .pipe(res)
