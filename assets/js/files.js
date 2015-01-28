@@ -1,8 +1,6 @@
 var Backbone = require('backbone')
   , $ = require('jquery')  
-  , _ = require('underscore')
-
-window.$ = window.jQuery = Backbone.$ = $
+window.$ = Backbone.$ = $
 
 var File = Backbone.Model.extend({ 
   defaults: function() {
@@ -22,11 +20,25 @@ var FileList = Backbone.Collection.extend({
 
 var FileView = Backbone.View.extend({
   model: new File(),
+
   tagName: 'li',
-  template: _.template($('#file-template').html()),
+
+  initialize: function (){
+    this.template = _.template($('#file-template').html())
+    FileList.fetch({
+      success: function () { 
+        console.log('suxess')
+      },
+      error: function () {
+        console.log('error')
+      } 
+    })
+  },
+
   events: { 
     "click .toggle": "toggleDone"
   },
+
   toggleDone: function () { 
     this.model.save({
       success:function() {

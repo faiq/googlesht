@@ -1,9 +1,7 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 var Backbone = require('backbone')
   , $ = require('jquery')  
-  , _ = require('underscore')
-
-window.$ = window.jQuery = Backbone.$ = $
+window.$ = Backbone.$ = $
 
 var File = Backbone.Model.extend({ 
   defaults: function() {
@@ -23,11 +21,25 @@ var FileList = Backbone.Collection.extend({
 
 var FileView = Backbone.View.extend({
   model: new File(),
+
   tagName: 'li',
-  template: _.template($('#file-template').html()),
+
+  initialize: function (){
+    this.template = _.template($('#file-template').html())
+    FileList.fetch({
+      success: function () { 
+        console.log('suxess')
+      },
+      error: function () {
+        console.log('error')
+      } 
+    })
+  },
+
   events: { 
     "click .toggle": "toggleDone"
   },
+
   toggleDone: function () { 
     this.model.save({
       success:function() {
@@ -41,7 +53,7 @@ var FileView = Backbone.View.extend({
 })
 
 
-},{"backbone":2,"jquery":4,"underscore":5}],2:[function(require,module,exports){
+},{"backbone":2,"jquery":4}],2:[function(require,module,exports){
 //     Backbone.js 1.1.2
 
 //     (c) 2010-2014 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -12275,6 +12287,4 @@ return jQuery;
 
 }));
 
-},{}],5:[function(require,module,exports){
-arguments[4][3][0].apply(exports,arguments)
-},{"dup":3}]},{},[1]);
+},{}]},{},[1]);
