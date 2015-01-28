@@ -17,6 +17,7 @@ describe('hitting the all endpoint', function () {
 
     req.isAuthenticated = function () { return true }
     req.user = {}
+    req.params = {}
     req.user.token = '123445abcd'
     res.on('data', function (chunk) {
       buf += chunk.toString()
@@ -67,7 +68,7 @@ describe('hitting an /all/:item endpoint', function () {
       assert.deepEqual(res.num, 401)
       done()
     }
-    routes.type(req,res)
+    routes.all(req,res)
   })
   it ('should error if you don\'t pass it in a valid param', function (done) { 
     var req = {}
@@ -87,7 +88,7 @@ describe('hitting an /all/:item endpoint', function () {
       assert.deepEqual(res.num, 400)
       done()
     }
-    routes.type(req,res)
+    routes.all(req,res)
   })
   it ('should give me all my spreadsheets if i pass in spreadsheets as a param', function (done) { 
     var req = {}
@@ -112,7 +113,7 @@ describe('hitting an /all/:item endpoint', function () {
       }) 
       done()
     })
-    routes.type(req, res)
+    routes.all(req, res)
   })
 })
 

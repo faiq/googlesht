@@ -44,7 +44,7 @@ mongoose.connection.on('open', function (err) {
         User.findOne({id: profile.id}, function (err, user) {
           if (err) return done(err)
           else if (user) {
-            //we'll move the validation/refresh token stuff to api requests themselves
+            console.log(user) 
             return done(null, user)
           } else {
             var newUser = new User()
@@ -67,7 +67,7 @@ mongoose.connection.on('open', function (err) {
   router.get("/auth/google/callback", passport.authenticate('google', {failureRedirect: '/fail',  successRedirect : '/all' }))        
   router.get('/fail', routes.fail) 
   router.get('/all',  routes.all)
-  router.get('/all/:type', routes.type)
+  router.get('/all/:type', routes.all)
   router.get("/", routes.index)
   http.createServer(router).listen('3000', '127.0.0.1')
 })
