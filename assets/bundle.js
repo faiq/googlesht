@@ -21,10 +21,16 @@ var FileList = Backbone.Collection.extend({
   url: '/all'
 })
 
+// You need to make sure the dom is loaded, otherwise $('#file-template') won't be able to grab the correct DOM element
+$(document).ready(function() {
 var FileView = Backbone.View.extend({
   model: new File(),
   tagName: 'li',
   template: _.template($('#file-template').html()),
+  // Alternatively, do it inside the initialize function
+  //initialize: function() {
+  //    this.template: _.template($('#file-template').html()
+  //},
   events: { 
     "click .toggle": "toggleDone"
   },
@@ -39,6 +45,7 @@ var FileView = Backbone.View.extend({
     })  
   }
 })
+});
 
 
 },{"backbone":2,"jquery":4,"underscore":5}],2:[function(require,module,exports){
