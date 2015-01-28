@@ -1,5 +1,7 @@
 var Backbone = require('backbone')
+  , _ = require('underscore')
   , $ = require('jquery')  
+
 window.$ = Backbone.$ = $
 
 var File = Backbone.Model.extend({ 
@@ -19,20 +21,13 @@ var FileList = Backbone.Collection.extend({
 })
 
 var FileView = Backbone.View.extend({
-  model: new File(),
+  model: new FileList(),
 
-  tagName: 'li',
+  tagName: 'div',
 
-  initialize: function (){
+  initialize: function () {
     this.template = _.template($('#file-template').html())
-    FileList.fetch({
-      success: function () { 
-        console.log('suxess')
-      },
-      error: function () {
-        console.log('error')
-      } 
-    })
+    this.model.fetch()
   },
 
   events: { 
@@ -50,4 +45,9 @@ var FileView = Backbone.View.extend({
     })  
   }
 })
+
+
+$(document).ready(function () {
+	var appview = new FileView();
+});
 

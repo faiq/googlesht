@@ -21,7 +21,6 @@ module.exports.fail = function (req, res) {
 module.exports.all = function (req, res) { 
   if (req.isAuthenticated()) {
     if (isValid(req.params.type)) {
-      console.log(req.params.type)
       var regex
       if (req.params.type) regex = new RegExp(req.params.type)
       refresh(req.user, process.env["KEY"], process.env["CS"], function (err) { 
