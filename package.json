@@ -4,7 +4,7 @@
   "description": "playground to work with oauth and google drive api ",
   "main": "index.js",
   "scripts": {
-    "test": "lab -cv tests/test.js",
+    "test": "mocha tests/test.js",
     "start": "node index"
   },
   "repository": {
@@ -37,6 +37,7 @@
   "devDependencies": {
     "code": "^1.3.0",
     "lab": "^5.2.1",
+    "mocha": "^2.1.0",
     "nock": "^0.57.0"
   }
 }

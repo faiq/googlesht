@@ -1,13 +1,8 @@
 var nock = require('nock')
-  , Lab = require('lab')
   , routes = require('../routes')
   , Stream = require('stream').PassThrough 
   , assert = require('assert') 
   , data = require('./mock') 
-  , lab = exports.lab = Lab.script() 
-  , beforeEach = lab.beforeEach
-  , describe = lab.describe
-  , it = lab.it 
 
 beforeEach(function (done) { 
   nock('https://www.googleapis.com').get('/drive/v2/files').reply(200, data) 
