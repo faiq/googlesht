@@ -26,5 +26,15 @@ Google.prototype.getFile = function (id, next) {
   }
   return request(opts, next)
 } 
+Google.prototype.getExport = function (url, next) { 
+  var opts = 
+  {
+    uri: url,
+    headers: { 
+      'Authorization': 'Bearer ' +  this.token
+    }
+  }
+  return request(opts, next)
+}
 
 module.exports = Google 

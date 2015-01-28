@@ -4,6 +4,7 @@ var express = require("express")
   , goAuth = require("passport-google-oauth").OAuth2Strategy
   , cookieParser = require('cookie-parser')
   , session = require('express-session')
+  , path = require('path')
   , mongoose = require('mongoose')
   , routes = require('./routes')
   , router = express()
@@ -24,6 +25,8 @@ mongoose.connection.on('open', function (err) {
   router.use(passport.initialize())
   router.use(passport.session())
   router.use(cookieParser())
+  router.use(express.static(path.join(__dirname, '/assets')))
+
   passport.serializeUser(function(user, done) {
     done(null, user.id)
   })
@@ -61,12 +64,14 @@ mongoose.connection.on('open', function (err) {
     )
   )
 
-  router.get("/auth/google", passport.authenticate('google', { accessType: 'offline', approvalPrompt: 'force'}))
-  router.get("/auth/google/callback", passport.authenticate('google', {failureRedirect: '/fail',  successRedirect : '/all' }))        
+  router.get('/auth/google', passport.authenticate('google', { accessType: 'offline', approvalPrompt: 'force'}))
+  router.get('/auth/google/callback', passport.authenticate('google', {failureRedirect: '/fail',  successRedirect : '/files' }))
   router.get('/fail', routes.fail) 
+  router.get('/files', routes.files)
   router.get('/all',  routes.all)
   router.get('/all/:type', routes.all)
-  router.get("/", routes.index)
+  router.get('/', routes.index)
+  router.get('/:type/:id', routes.id)
   http.createServer(router).listen('3000', '127.0.0.1')
 })
 

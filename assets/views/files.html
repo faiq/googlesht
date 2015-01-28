@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  	<meta charset="UTF-8">
+  	<title>google drive play</title>
+  </head>
+  <body>
+    <h1>Files List</h1>
+
+    <script src="/bundle.js">
+    <script type="text/template" id="file-template">
+      <div class="view">
+        <input class="toggle" type="checkbox" <%= done ? 'checked="checked"' : '' %> />
+        <label><%- title %></label>
+      </div>
+      <input class="edit" type="text" value="<%- title %>" />
+    </script>
+  </body> 
+</html>
