@@ -6,16 +6,15 @@
   </head>
   <body>
     <h1>Files List</h1>
-    <div id="FilesContainer"></div> 
+    <div id="FilesContainer"></div>
 
     <script type="text/template" id="file-template">
       <div class="view">
-        <input class="toggle" type="checkbox" <%= done ? 'checked="checked"' : '' %> />
+        <input class="toggle" type="checkbox" />
         <label><%- title %></label>
       </div>
-      <input class="edit" type="text" value="<%- title %>" />
     </script>
 
     <script src="/bundle.js"></script>
-  </body> 
+  </body>
 </html>
