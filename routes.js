@@ -3,6 +3,8 @@ var JSONStream = require('JSONStream')
   , refresh = require('./refresh')
   , Google = require('./fetchers/Google')
   , fs = require('fs')
+  , _ = require('underscore')
+  , request = require('request') 
   , validate = require('dash-chart-validation')
 
 
@@ -54,16 +56,16 @@ module.exports.files = function (req, res) {
 
 module.exports.id = function (req, res) {
   if (req.isAuthenticated()) {
-    var client = new Google(req.user.token) 
-    client.getFile(req.params.id, function (e, r, b) { 
-      if (e) res.status(500).send('we had a problem getting your file')
-      else { 
-        var lines = req.body.split(/\r?\n/)
+    if (req.body.link) {
+      var client = new Google(req.user.token)
+      client.getExport(req.body.link, function (e,r,b) { 
+        var lines =  b.split(/\r?\n/)
           , headers = lines[0].split(',')
-          , result = {
+         console.log(headers)
+          var result = {
               graph: {
                 title: headers[0],
-                datasequences: new Array(headers.length - 1)
+                datasequences: [headers.length - 1]
               }
             }
 
@@ -83,10 +85,11 @@ module.exports.id = function (req, res) {
             })
           }
         } 
-        if (validate(result)) JSONStream.stringify.pipe(res)
+        
+        if (validate(result)) res.send(result)
         else res.status(400).send('Your file isnt the right type')
-      }
-    })
+      })
+    } else res.status(400).send('Invalid file type')
   } else res.status(401).send('Invalid Credentials')
 }
 
@@ -98,10 +101,16 @@ function isValid (type) {
 }
 
 function buildObj (id, title, type, links) { 
+  var l = _.find(_.keys(links), function (link) { 
+    if (/text\/[^html]/.test(link)) { 
+      return links[link]
+    }
+  })
   var obj = {}
   obj.id = id 
   obj.title = title
   obj.type = type 
-  obj.links = links
+  if (l) obj.links = links[l]
+  else obj.links = ''
   return obj
 }

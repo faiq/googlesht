@@ -6,6 +6,7 @@ var express = require("express")
   , session = require('express-session')
   , path = require('path')
   , mongoose = require('mongoose')
+  , bodyParser = require('body-parser')
   , routes = require('./routes')
   , router = express()
   , User = null 
@@ -20,7 +21,10 @@ mongoose.connect('mongodb://localhost/googleUsers')
 mongoose.connection.on('open', function (err) {
   console.log('mongo in da house')
   User = require('./models')(mongoose)
-
+  router.use(bodyParser.json())       // to support JSON-encoded bodies
+  router.use(bodyParser.urlencoded({     // to support URL-encoded bodies
+    extended: true
+  })) 
   router.use(session({secret: 'cat'}))
   router.use(passport.initialize())
   router.use(passport.session())
@@ -71,7 +75,7 @@ mongoose.connection.on('open', function (err) {
   router.get('/all',  routes.all)
   router.get('/all/:type', routes.all)
   router.get('/', routes.index)
-  router.get('/:type/:id', routes.id)
+  router.post('/id', routes.id)
   http.createServer(router).listen('3000', '127.0.0.1')
 })
 

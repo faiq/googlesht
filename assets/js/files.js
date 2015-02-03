@@ -29,8 +29,29 @@ var FileView = Backbone.View.extend({
 
   render: function () {
     // The model is a SINGLE file. Send it into the template, and append it to this dom node
+  console.log(this.model.toJSON())
     this.$el.html(this.template(this.model.toJSON()))
     return this
+  },
+
+  events: {
+    "click" : "graph"
+  },
+
+  graph: function () { 
+    var _this = this
+    $.ajax({ 
+      url: "/id",
+      type: 'POST',
+      data: {link: _this.model.get(
+        'links')},
+      success: function (data, stat) { 
+        console.log(JSON.stringify(data))
+      },
+      error: function () { 
+        console.log(arguments)
+      } 
+    })
   }
 
 })
@@ -47,7 +68,10 @@ var FilesView = Backbone.View.extend({
   // This is called for each file that's fetched
   add: function (file) {
     // Build a file view, and append it into the files list container
-    var fv = new FileView({ model: file })
+    var fv = new FileView({ 
+      model: file
+    })
+
     this.$el.append(fv.render().el)
   },
 
