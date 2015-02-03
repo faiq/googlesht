@@ -1,14 +1,14 @@
 var Backbone = require('backbone')
   , _ = require('underscore')
-  , $ = require('jquery')  
+  , $ = require('jquery')
 
 window.$ = Backbone.$ = $
 
-var File = Backbone.Model.extend({ 
+var File = Backbone.Model.extend({
   defaults: function() {
     return {
       title: '',
-      id: '', 
+      id: '',
       type: '',
       link: '',
     }
@@ -21,46 +21,48 @@ var FileList = Backbone.Collection.extend({
 })
 
 var FileView = Backbone.View.extend({
-  model: new File(),
-
-  tagName: 'div',
 
   initialize: function () {
+    // Compile the template
     this.template = _.template($('#file-template').html())
   },
 
-  events: { 
-    "click .toggle": "toggleDone"
-  },
-
-  toggleDone: function () { 
-    this.model.save({
-      success:function() {
-        console.log('saved tweet to db')
-      },
-      error:function () {
-        console.log('failed to save db')
-      }
-    })  
+  render: function () {
+    // The model is a SINGLE file. Send it into the template, and append it to this dom node
+    this.$el.html(this.template(this.model.toJSON()))
+    return this
   }
+
 })
 
-var FilesView = Backbone.View.extend({ 
-  model: new FileList(), 
-  el: $('#FilesContainer'), 
-  initialize: function () { 
-    this.model.fetch({
-      success: function(item){
-        console.log(item)
-        this.render(item) 
-      }  
-    })
+var FilesView = Backbone.View.extend({
+  el: $('#FilesContainer'),
+  initialize: function () {
+    this.files = new FileList
+
+    // listen to add events on the collection. when one is fired, call add.
+    this.listenTo(this.files, 'add', this.add, this)
   },
-  render: function ()
-  
+
+  // This is called for each file that's fetched
+  add: function (file) {
+    // Build a file view, and append it into the files list container
+    var fv = new FileView({ model: file })
+    this.$el.append(fv.render().el)
+  },
+
+  render: function () {
+    this.files.fetch()
+    return this
+  }
+
 
 })
 $(document).ready(function () {
-	var appview = new FileView();
+  // Build the view that will list the files
+	var appview = new FilesView();
+
+  // Render it and add it to the dom
+  $('#FilesContainer').append(appview.render().el)
 });
 
