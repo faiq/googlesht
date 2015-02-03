@@ -4,7 +4,9 @@ var express = require("express")
   , goAuth = require("passport-google-oauth").OAuth2Strategy
   , cookieParser = require('cookie-parser')
   , session = require('express-session')
+  , path = require('path')
   , mongoose = require('mongoose')
+  , bodyParser = require('body-parser')
   , routes = require('./routes')
   , router = express()
   , User = null 
@@ -19,11 +21,16 @@ mongoose.connect('mongodb://localhost/googleUsers')
 mongoose.connection.on('open', function (err) {
   console.log('mongo in da house')
   User = require('./models')(mongoose)
-
+  router.use(bodyParser.json())       // to support JSON-encoded bodies
+  router.use(bodyParser.urlencoded({     // to support URL-encoded bodies
+    extended: true
+  })) 
   router.use(session({secret: 'cat'}))
   router.use(passport.initialize())
   router.use(passport.session())
   router.use(cookieParser())
+  router.use(express.static(path.join(__dirname, '/assets')))
+
   passport.serializeUser(function(user, done) {
     done(null, user.id)
   })
@@ -61,12 +68,14 @@ mongoose.connection.on('open', function (err) {
     )
   )
 
-  router.get("/auth/google", passport.authenticate('google', { accessType: 'offline', approvalPrompt: 'force'}))
-  router.get("/auth/google/callback", passport.authenticate('google', {failureRedirect: '/fail',  successRedirect : '/all' }))        
+  router.get('/auth/google', passport.authenticate('google', { accessType: 'offline', approvalPrompt: 'force'}))
+  router.get('/auth/google/callback', passport.authenticate('google', {failureRedirect: '/fail',  successRedirect : '/files' }))
   router.get('/fail', routes.fail) 
+  router.get('/files', routes.files)
   router.get('/all',  routes.all)
   router.get('/all/:type', routes.all)
-  router.get("/", routes.index)
+  router.get('/', routes.index)
+  router.post('/id', routes.id)
   http.createServer(router).listen('3000', '127.0.0.1')
 })
 

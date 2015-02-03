@@ -27,5 +27,4 @@ node_modules
 # Users Environment Variables
 .lock-wscript
 
-# lol db bc mongo didnt work
-users.txt
+assets/bundle.js

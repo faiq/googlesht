@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  	<meta charset="UTF-8">
+  	<title>google drive play</title>
+  </head>
+  <body>
+    <h1>Files List</h1>
+    <div id="FilesContainer"></div>
+
+    <script type="text/template" id="file-template">
+      <div class="view">
+        <input id="yo" class="toggle" type="radio" />
+        <label><%- title %></label>
+        <label><%- links %></label> 
+      </div>
+    </script>
+
+    <script src="/bundle.js"></script>
+  </body>
+</html>
