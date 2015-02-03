@@ -21,13 +21,12 @@ var FileList = Backbone.Collection.extend({
 })
 
 var FileView = Backbone.View.extend({
-  model: new FileList(),
+  model: new File(),
 
   tagName: 'div',
 
   initialize: function () {
     this.template = _.template($('#file-template').html())
-    this.model.fetch()
   },
 
   events: { 
@@ -46,7 +45,21 @@ var FileView = Backbone.View.extend({
   }
 })
 
+var FilesView = Backbone.View.extend({ 
+  model: new FileList(), 
+  el: $('#FilesContainer'), 
+  initialize: function () { 
+    this.model.fetch({
+      success: function(item){
+        console.log(item)
+        this.render(item) 
+      }  
+    })
+  },
+  render: function ()
+  
 
+})
 $(document).ready(function () {
 	var appview = new FileView();
 });

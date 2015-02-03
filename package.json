@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha tests/test.js",
-    "start": "node index"
+    "start": "node index",
+    "watch": "watchify assets/js/files.js -o assets/bundle.js -dv"
   },
   "repository": {
     "type": "git",
@@ -43,6 +44,7 @@
     "code": "^1.3.0",
     "lab": "^5.2.1",
     "mocha": "^2.1.0",
-    "nock": "^0.57.0"
+    "nock": "^0.57.0",
+    "watchify": "^2.3.0"
   }
 }
